@@ -55,7 +55,7 @@ def timer(seconds):
 These check_for functions are made to dependent on the timer using multithreading.
 I needed a way to run a timer and to make sure the desired element exists on the page we are on
 '''
-def check_for_id_element(id_tag, is_multiple_opts=False):
+def check_for_id_element(id_tag):
 	global browser
 	global is_timed_out
 	global did_find_element
@@ -71,7 +71,7 @@ def check_for_id_element(id_tag, is_multiple_opts=False):
 				did_find_element = False
 		except: pass
 
-def check_for_css_element(css_tag, is_multiple_opts=False):
+def check_for_css_element(css_tag):
 	global browser
 	global is_timed_out
 	global did_find_element
@@ -94,18 +94,24 @@ should follow the K.I.S.S (keep it simple stupid) method.
 The REAL magic happens here.
 
 ======= example ========
-interact_with_id('promptInput_191744', text_input=True, textInput_opts=list_of_text_queries)
+interact_with_id('promptInput_191744', text_input=True, textInput_choice=list_of_text_queries)
 interact_with_id('option_423220_198378') # should ignore text_input and textInput_opts as those are default blank
 ========================
 
 if id_tag question has to be of a specific index send them in a list as such:
 	=======================================================================
-	- interact_with_id(['id_tag213:[1]', 'id_tag890:[3]'], multi_tags=True)
+	- interact_with_id('id_tag213', is_index_present=True, id_index=4)
+
+	currently index can't be used with multi_tags due to an issue where if
+	A = ['noindex_id', 'index_id_of_3', 'index_id_of_13']
+	B = [4, 3]
+
+	originally, if I tried to loop through and connect them it would work, however
+	in the case where one of the id's doesn't require an index (e.g. A[0]) it would throw
+	an error in the automation or choose the wrong one. Looking into this.
 	=======================================================================
-	the function will check for a split by the colons, if there, it will associate the
-	index with the proper id_tag and interact with it properly
 '''
-def interact_with_id(id_tag, multi_tags=False, text_input=False, textInput_choice=None):
+def interact_with_id(id_tag, is_index_present=False, id_index=None, multi_tags=False, text_input=False, textInput_choice=None, next_page=True):
 	if not did_quit:
 		t1 = threading.Thread(target=timer, args=(20,))
 		if multi_tags:
@@ -117,30 +123,40 @@ def interact_with_id(id_tag, multi_tags=False, text_input=False, textInput_choic
 		t1.start() ; t2.start()
 		t1.join() ; t2.join()
 
-	if multi_tags: # if we have multiple tags to interact with go here
+	if is_index_present:
 		if did_find_element:
 			if not text_input:
-				for id in id_tag:
-					browser.find_by_id(id).click()
-				browser.find_by_id('nextPageLink').click() # head to the next page
+				browser.find_by_id(id_tag)[id_index].click()
+				#browser.find_by_id('nextPageLink').clic() # head to the next page
 				is_timed_out = False # reset check query
 				did_find_element = False # reset check query
 
-	if did_find_element:
+	if multi_tags: # if we have multiple tags to interact with go here
+		if did_find_element:
+			if not text_input:
+				for id_name in id_tag:
+					browser.find_by_id(id_name).click()
+				#browser.find_by_id('nextPageLink').click() # head to the next page
+				is_timed_out = False # reset check query
+				did_find_element = False # reset check query
+
+	if did_find_element and not is_index_present:
 		if text_input == True:
 			browser.find_by_id(id_tag).fill(textInput_choice)
-			browser.find_by_id('nextPageLink').click() # head to next page
+			#browser.find_by_id('nextPageLink').click() # head to next page
 			is_timed_out = False # reset check query
 			did_find_element = False # reset check query
 
 		elif text_input == False:
 			browser.find_by_id(id_tag).click()
-			browser.find_by_id('nextPageLink').click() # head to next page
+			#browser.find_by_id('nextPageLink').click() # head to next page
 			is_timed_out = False # reset check query
 			did_find_element = False # reset check query
+	if next_page:
+		browser.find_by_id('nextPageLink').click() # head to next page
 
 
-def interact_with_css(css_tag, multi_tags=False, text_input=False, textInput_choice=None):
+def interact_with_css(css_tag, is_index_present=False, css_index=None, multi_tags=False, text_input=False, textInput_choice=None, next_page=True):
 	if not did_quit:
 		t1 = threading.Thread(target=timer, args=(20,))
 		if multi_tags:
@@ -152,27 +168,37 @@ def interact_with_css(css_tag, multi_tags=False, text_input=False, textInput_cho
 		t1.start() ; t2.start()
 		t1.join() ; t2.join()
 
-	if multi_tags: # if we have multiple tags to interact with go here
+	if is_index_present:
 		if did_find_element:
 			if not text_input:
-				for class_id in css_tag:
-					browser.find_by_css(class_id).click()
-				browser.find_by_id('nextPageLink').click() # head to the next page
+				browser.find_by_css(css_tag)[css_index].click()
+				#browser.find_by_id('nextPageLink').clic() # head to the next page
 				is_timed_out = False # reset check query
 				did_find_element = False # reset check query
 
-	if did_find_element:
+	if multi_tags: # if we have multiple tags to interact with go here
+		if did_find_element:
+			if not text_input:
+				for css_name in css_tag:
+					browser.find_by_css(css_name).click()
+				#browser.find_by_id('nextPageLink').click() # head to the next page
+				is_timed_out = False # reset check query
+				did_find_element = False # reset check query
+
+	if did_find_element and not is_index_present:
 		if text_input == True:
 			browser.find_by_css(css_tag).fill(textInput_choice)
-			browser.find_by_id('nextPageLink').click() # head to next page
+			#browser.find_by_id('nextPageLink').click() # head to next page
 			is_timed_out = False # reset check query
 			did_find_element = False # reset check query
 
 		elif text_input == False:
 			browser.find_by_css(css_tag).click()
-			browser.find_by_id('nextPageLink').click() # head to next page
+			#browser.find_by_id('nextPageLink').click() # head to next page
 			is_timed_out = False # reset check query
 			did_find_element = False # reset check query
+	if next_page:
+		browser.find_by_id('nextPageLink').click() # head to next page
 
 
 '''
@@ -190,33 +216,27 @@ def activate_survey(server_name, digit_code):
 	did_find_element = False
 
 	# first page of the survey, the 16-digit code =================================
-	interact_with_id('promptInput_191744', text_input=True, textInput_choice=digit_code)
+	interact_with_id('promptInput_191744', text_input=True, textInput_choice=digit_code, next_page=True)
 	if did_find_element: # element found, fill the details
 		if not browser.is_element_not_present_by_text('Sorry that is not a valid answer, please try again'):
 			''' INSERT TWILIO ERROR RESPONSE HERE '''
 			print('Sorry that is not a valid code, please try again')
 
 	# did you visit x location (second question) ===================================
-	interact_with_id('option_423220_198378')
+	interact_with_id('option_423220_198378', next_page=True)
 	# how would you rate your experience at Buffalo Wild Wings? (third question) ===================================
-	interact_with_css('.option.option_408610_189757.first')
+	interact_with_css('.option.option_408610_189757.first', next_page=True)
 	# reason for visiting Buffalo Wild Wings? (fourth question) ===================================
-	interact_with_css('.show-check')
-	'''
-	still need to program the index functionality inside of interact_with_
-
-	if did_find_element: # element found, fill the details
-		# two questions on this exact page
-		browser.find_by_css(".show-check")[choice([0,1,2,3,4,5,6,7,8])].click()
-		browser.find_by_id(choice(["option_683213_312382", "option_683214_312382"])).click() # selecting bar area. Josh is a bartender
-	'''
+	interact_with_css('.show-check', is_index_present=True, css_index=choice([0,1,2,3,4,5,6,7,8]), next_page=False)
+	interact_with_id(choice(["option_683213_312382", "option_683214_312382"]), next_page=True) # selecting bar area.
 	# how did you place your order (fifth question) ===================================
-	interact_with_id('option_408626_189778')
+	interact_with_id('option_408626_189778', next_page=True)
 	# what food/beverage did you order (sixth question) ===================================
-	interact_with_css(['.show-check:[%d]' % (choice([0,9,10,11])), '.show-check:[%d]' % (choice([14,15,18,20]))], multi_tags=True)
+	interact_with_css('.show-check', is_index_present=True, css_index=choice([0,9,10,11]), next_page=False)
+	interact_with_css('.show-check', is_index_present=True, css_index=choice([14,15,18,20]), next_page=True)
 	# speed of service and overall quality (seventh question) ===================================
 	interact_with_css(['.option.option_508973_239500.first',
-				'.option.option_508991_239503.first','.option.option_508996_239504.first'], multi_tags=True)
+				'.option.option_508991_239503.first','.option.option_508996_239504.first'], multi_tags=True, next_page=True)
 
 
 '''
