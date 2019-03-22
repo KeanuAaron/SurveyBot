@@ -18,7 +18,7 @@ To Do List
 1. Configure exit nodes for Tor Network to come straight from U.S. soil, considering that's where these servers
   are located for the guest satisfaction surveys.
 2. Finish programming the survey to completion.
-3. Integrate texting interact via the Twilio API to activate and to send error cases, if any.
+3. create a listener function to activate survey automation via Text message.
 
 Things I've learned so far
 ==========================
