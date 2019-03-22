@@ -173,6 +173,10 @@ def interact_with_id(id_tag, is_index_present=False, id_index=None, multi_tags=F
 
 
 def interact_with_css(css_tag, is_index_present=False, css_index=None, multi_tags=False, text_input=False, textInput_choice=None, next_page=True):
+	global did_find_element
+	global is_timed_out
+	global browser
+	
 	if not did_quit:
 		t1 = threading.Thread(target=timer, args=(20,))
 		if multi_tags:
