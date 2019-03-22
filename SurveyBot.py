@@ -8,6 +8,17 @@ from stem.control import Controller
 from splinter import Browser
 from selenium import webdriver
 
+from twilio.rest import Client
+
+ACCOUNT_SID = ''
+AUTH_TOKEN = ''
+client = Client(ACCOUNT_SID, AUTH_TOKEN)
+
+CLIENT_NUMBER = 'users_number'
+TWILIO_PHONE_NUMBER = 'twilio_number'
+SURVEY_URL = 'https://bwwlistens.com'
+CLICK_NEXT_BUTTON = 'nextPageLink'
+
 
 ''' this function is created so that we can jump around the tor networks to bypass ip limiting
 from the survey... we want to be able to automate as many surveys as possible..
@@ -45,10 +56,13 @@ def timer(seconds):
 		is_timed_out = True
 		browser.quit()
 		did_quit = True
-		print('Browser timed out. Please try again.')
-		'''
-		SEND TWILIO <TIMED OUT> NOTIFICATION TO USER
-		'''
+		#print('Browser timed out. Please try again.')
+		# send twilio timed out notification
+		message = client.messages.create(
+			from_=TWILIO_PHONE_NUMBER,
+			body="TheSurveyBot has timed out, couldn't find element. Please try agin.",
+			to=CLIENT_NUMBER
+		)
 
 
 '''
@@ -89,13 +103,11 @@ def check_for_css_element(css_tag):
 
 
 '''
-This is a test function that, if written correctly,
-should follow the K.I.S.S (keep it simple stupid) method.
 The REAL magic happens here.
 
 ======= example ========
 interact_with_id('promptInput_191744', text_input=True, textInput_choice=list_of_text_queries)
-interact_with_id('option_423220_198378') # should ignore text_input and textInput_opts as those are default blank
+interact_with_id('option_423220_198378', next_page=True) # should ignore text_input and textInput_opts as those are default blank
 ========================
 
 if id_tag question has to be of a specific index send them in a list as such:
@@ -112,6 +124,10 @@ if id_tag question has to be of a specific index send them in a list as such:
 	=======================================================================
 '''
 def interact_with_id(id_tag, is_index_present=False, id_index=None, multi_tags=False, text_input=False, textInput_choice=None, next_page=True):
+	global did_find_element
+	global is_timed_out
+	global browser
+
 	if not did_quit:
 		t1 = threading.Thread(target=timer, args=(20,))
 		if multi_tags:
@@ -127,7 +143,7 @@ def interact_with_id(id_tag, is_index_present=False, id_index=None, multi_tags=F
 		if did_find_element:
 			if not text_input:
 				browser.find_by_id(id_tag)[id_index].click()
-				#browser.find_by_id('nextPageLink').clic() # head to the next page
+				#browser.find_by_id(CLICK_NEXT_BUTTON).clic() # head to the next page
 				is_timed_out = False # reset check query
 				did_find_element = False # reset check query
 
@@ -136,31 +152,31 @@ def interact_with_id(id_tag, is_index_present=False, id_index=None, multi_tags=F
 			if not text_input:
 				for id_name in id_tag:
 					browser.find_by_id(id_name).click()
-				#browser.find_by_id('nextPageLink').click() # head to the next page
+				#browser.find_by_id(CLICK_NEXT_BUTTON).click() # head to the next page
 				is_timed_out = False # reset check query
 				did_find_element = False # reset check query
 
 	if did_find_element and not is_index_present:
 		if text_input == True:
 			browser.find_by_id(id_tag).fill(textInput_choice)
-			#browser.find_by_id('nextPageLink').click() # head to next page
+			#browser.find_by_id(CLICK_NEXT_BUTTON).click() # head to next page
 			is_timed_out = False # reset check query
 			did_find_element = False # reset check query
 
 		elif text_input == False:
 			browser.find_by_id(id_tag).click()
-			#browser.find_by_id('nextPageLink').click() # head to next page
+			#browser.find_by_id(CLICK_NEXT_BUTTON).click() # head to next page
 			is_timed_out = False # reset check query
 			did_find_element = False # reset check query
 	if next_page:
-		browser.find_by_id('nextPageLink').click() # head to next page
+		browser.find_by_id(CLICK_NEXT_BUTTON).click() # head to next page
 
 
 def interact_with_css(css_tag, is_index_present=False, css_index=None, multi_tags=False, text_input=False, textInput_choice=None, next_page=True):
 	if not did_quit:
 		t1 = threading.Thread(target=timer, args=(20,))
 		if multi_tags:
-			# use first css_tag if a list is given through the multi_tags argument
+			# use first id_tag if a list is given through the multi_tags argument
 			t2 = threading.Thread(target=check_for_css_element, args=(css_tag[0],))
 		elif not multi_tags:
 			# if not just go about your day.
@@ -172,7 +188,7 @@ def interact_with_css(css_tag, is_index_present=False, css_index=None, multi_tag
 		if did_find_element:
 			if not text_input:
 				browser.find_by_css(css_tag)[css_index].click()
-				#browser.find_by_id('nextPageLink').clic() # head to the next page
+				#browser.find_by_id(CLICK_NEXT_BUTTON).clic() # head to the next page
 				is_timed_out = False # reset check query
 				did_find_element = False # reset check query
 
@@ -181,24 +197,24 @@ def interact_with_css(css_tag, is_index_present=False, css_index=None, multi_tag
 			if not text_input:
 				for css_name in css_tag:
 					browser.find_by_css(css_name).click()
-				#browser.find_by_id('nextPageLink').click() # head to the next page
+				#browser.find_by_id(CLICK_NEXT_BUTTON).click() # head to the next page
 				is_timed_out = False # reset check query
 				did_find_element = False # reset check query
 
 	if did_find_element and not is_index_present:
 		if text_input == True:
 			browser.find_by_css(css_tag).fill(textInput_choice)
-			#browser.find_by_id('nextPageLink').click() # head to next page
+			#browser.find_by_id(CLICK_NEXT_BUTTON).click() # head to next page
 			is_timed_out = False # reset check query
 			did_find_element = False # reset check query
 
 		elif text_input == False:
 			browser.find_by_css(css_tag).click()
-			#browser.find_by_id('nextPageLink').click() # head to next page
+			#browser.find_by_id(CLICK_NEXT_BUTTON).click() # head to next page
 			is_timed_out = False # reset check query
 			did_find_element = False # reset check query
 	if next_page:
-		browser.find_by_id('nextPageLink').click() # head to next page
+		browser.find_by_id(CLICK_NEXT_BUTTON).click() # head to next page
 
 
 '''
@@ -218,8 +234,12 @@ def activate_survey(server_name, digit_code):
 	# first page of the survey, the 16-digit code =================================
 	interact_with_id('promptInput_191744', text_input=True, textInput_choice=digit_code, next_page=True)
 	if did_find_element: # element found, fill the details
-		if not browser.is_element_not_present_by_text('Sorry that is not a valid answer, please try again'):
-			''' INSERT TWILIO ERROR RESPONSE HERE '''
+		if browser.is_element_not_present_by_text('Sorry that is not a valid answer, please try again') == False: # isn't catching error.
+			message = client.messages.create(
+				from_=TWILIO_PHONE_NUMBER,
+				body="Sorry, the digit code you have entered has already been used, or typed incorrectly. Please try agin.",
+				to=CLIENT_NUMBER
+			)
 			print('Sorry that is not a valid code, please try again')
 
 	# did you visit x location (second question) ===================================
@@ -248,13 +268,13 @@ def start_browser():
 	global digit_code
 	global server_name
 
-	emulate_device = [True, False] # to emulate, or not. That is the question
+	emulate_device = choice([True, False]) # to emulate, or not. That is the question
 
 	PROXY = "127.0.0.1:9150" # connect to localhost using the Tor port.
 	if emulate_device:
 	    # emulate a mobile phone to trick headers
 	    # not 100% sure if this even tricks headers, but why not..
-		mobile_options = ['iPhone 6', 'iPhone X'] # NEED TO LOOK FOR MORE AVAILABLE DEVICES TO EMULATE ================================
+		mobile_options = ['iPhone 6', 'iPhone 7', 'iPhone 8', 'iPhone X'] # NEED TO LOOK FOR MORE AVAILABLE DEVICES TO EMULATE ================================
 		mobile_emulation = {"deviceName": choice(mobile_options)}
 
 		chrome_options = webdriver.ChromeOptions()
@@ -267,9 +287,7 @@ def start_browser():
 	executable_path = {'executable_path':'/path/to/chromedriver'}
 	# set headless to False when in development, and True when live
 	browser = Browser('chrome', **executable_path, headless=False, options=chrome_options)
-
-	url = 'https://bwwlistens.com'
-	browser.visit(url)
+	browser.visit(SURVEY_URL)
 
 	activate_survey(server_name, digit_code)
 
