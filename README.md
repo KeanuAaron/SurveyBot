@@ -1,10 +1,8 @@
 # SurveyBot
 A survey bot aimed to automate Guest Satisfaction Surveys
 
-This specific file goes directly to Buffalo Wild Wings survey online @ https://bwwlistens.com.
-The program can be altered ever so slightly to interact with different surveys online, eg. Cheddars, Red Lobster etc.
-Currently, the automation is not complete, I've ran out of 16-digit codes to use, so I am in the process of retreiving more
-so that I can complete this.
+This specific code example goes directly to Red Lobster survey online @ https://redlobstersurvey.com.
+The program can be altered ever so slightly to interact with different surveys online, eg. Cheddars, Buffalo Wild Wings, CVS etc. Change the code automation under the commented lines under the activate_survey(server_name, digit_code) method.
 
 HOW TO USE:
 ===========
