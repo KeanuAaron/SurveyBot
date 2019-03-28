@@ -242,12 +242,7 @@ def interact_with_text(text_tag, next_page=True):
 
 	if not did_quit:
 		t1 = threading.Thread(target=timer, args=(20,))
-		if multi_tags:
-			# use first id_tag if a list is given through the multi_tags argument
-			t2 = threading.Thread(target=check_for_text_element, args=(text_tag[0],))
-		elif not multi_tags:
-			# if not just go about your day.
-			t2 = threading.Thread(target=check_for_text_element, args=(text_tag,))
+		t2 = threading.Thread(target=check_for_text_element, args=(text_tag,))
 		t1.start() ; t2.start()
 		t1.join() ; t2.join()
 
